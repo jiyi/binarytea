@@ -1,3 +1,17 @@
 binarytea:
   ready: true
   open-hours: 8:30-22:00
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info,shop,metrics,prometheus
+  metrics:
+    distribution:
+      percentiles:
+        order:
+          summary: 0.95

@@ -2,8 +2,10 @@ package learning.spring.config;
 
 import learning.spring.binarytea.BinaryTeaApplication;
 import learning.spring.binarytea.BinaryTeaProperties;
+import learning.spring.binarytea.actuator.ShopReadyHealthIndicator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
@@ -33,4 +35,9 @@ public class ShopConfigurationEnableTest {
         assertEquals("8:30-22:00", properties.getOpenHours());
     }
 
+    @Test
+    void testIndicatorUp() {
+        ShopReadyHealthIndicator indicator = applicationContext.getBean(ShopReadyHealthIndicator.class);
+        assertEquals(Status.UP, indicator.getHealth(false).getStatus());
+    }
 }
