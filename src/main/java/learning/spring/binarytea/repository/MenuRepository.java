@@ -4,20 +4,26 @@ import learning.spring.binarytea.model.MenuItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.util.Date;
 import java.util.List;
 
 @Repository
 public class MenuRepository {
 
-    private JdbcTemplate jdbcTemplate;
+    public static final String INSERT_SQL = "insert into t_menu (name, size, price, create_time, update_time) values (?, ?, ?, now(), now())";
 
-//    @Autowired
-//    private NamedParameterJdbcOperations namedParameterJdbcOperations;
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private NamedParameterJdbcOperations namedParameterJdbcOperations;
 
     public MenuRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -42,6 +48,49 @@ public class MenuRepository {
         return jdbcTemplate.query(
                 "select * from t_menu",
                 rowMapper()
+        );
+    }
+
+    public int insertItem(MenuItem item) {
+        return jdbcTemplate.update(INSERT_SQL,
+                item.getName(),
+                item.getSize(),
+                item.getPrice().multiply(BigDecimal.valueOf(100)).longValue()
+                );
+    }
+
+    public int insertItemWithNamedParameter(MenuItem item) {
+        String sql = "insert into t_menu (name, size, price, create_time, update_time) values " +
+                "(:name, :size, :price, now(), now())";
+        MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
+        sqlParameterSource.addValue("name", item.getName());
+        sqlParameterSource.addValue("size", item.getSize());
+        sqlParameterSource.addValue("price", item.getPrice().multiply(BigDecimal.valueOf(100)).longValue());
+        return namedParameterJdbcOperations.update(sql, sqlParameterSource);
+    }
+
+    public int insertItemAndFillId(MenuItem item) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        int affected = jdbcTemplate.update(con -> {
+            PreparedStatement preparedStatement = con.prepareStatement(
+                    INSERT_SQL,
+                    PreparedStatement.RETURN_GENERATED_KEYS
+            );
+            preparedStatement.setString(1, item.getName());
+            preparedStatement.setString(2, item.getSize());
+            preparedStatement.setLong(3, item.getPrice().multiply(BigDecimal.valueOf(100)).longValue());
+            return preparedStatement;
+        }, keyHolder);
+        if (affected == 1) {
+            item.setId(keyHolder.getKey().longValue());
+        }
+        return affected;
+    }
+
+    public int deleteItem(Long id) {
+        return jdbcTemplate.update(
+                "delete from t_menu where id = ?",
+                id
         );
     }
 
