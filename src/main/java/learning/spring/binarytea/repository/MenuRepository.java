@@ -2,18 +2,24 @@ package learning.spring.binarytea.repository;
 
 import learning.spring.binarytea.model.MenuItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class MenuRepository {
@@ -23,7 +29,7 @@ public class MenuRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private NamedParameterJdbcOperations namedParameterJdbcOperations;
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public MenuRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -66,7 +72,7 @@ public class MenuRepository {
         sqlParameterSource.addValue("name", item.getName());
         sqlParameterSource.addValue("size", item.getSize());
         sqlParameterSource.addValue("price", item.getPrice().multiply(BigDecimal.valueOf(100)).longValue());
-        return namedParameterJdbcOperations.update(sql, sqlParameterSource);
+        return namedParameterJdbcTemplate.update(sql, sqlParameterSource);
     }
 
     public int insertItemAndFillId(MenuItem item) {
@@ -92,6 +98,41 @@ public class MenuRepository {
                 "delete from t_menu where id = ?",
                 id
         );
+    }
+
+    public int insertItems(List<MenuItem> items) {
+        int[] count = jdbcTemplate.batchUpdate(INSERT_SQL, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                MenuItem item = items.get(i);
+                ps.setString(1, item.getName());
+                ps.setString(2, item.getSize());
+                ps.setLong(3, item.getPrice().multiply(BigDecimal.valueOf(100)).longValue());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return items.size();
+            }
+        });
+        return Arrays.stream(count).sum();
+    }
+
+    public int insertItemsWithBatchArgs(List<MenuItem> items) {
+        List<Object[]> batchArgs = items.stream().map(item -> new Object[]{
+                item.getName(),
+                item.getSize(),
+                item.getPrice().multiply(BigDecimal.valueOf(100)).longValue()
+        }).collect(Collectors.toList());
+        int [] count = jdbcTemplate.batchUpdate(INSERT_SQL, batchArgs);
+        return Arrays.stream(count).sum();
+    }
+
+    public int insertItemsWithNamedParameter(List<MenuItem> items) {
+        String sql = "insert into t_menu (name, size, price, create_time, update_time) values " +
+                "(:name, :size, :price * 100, now(), now())";
+        int[] count = namedParameterJdbcTemplate.batchUpdate(sql, SqlParameterSourceUtils.createBatch(items));
+        return Arrays.stream(count).sum();
     }
 
     private RowMapper<MenuItem> rowMapper() {

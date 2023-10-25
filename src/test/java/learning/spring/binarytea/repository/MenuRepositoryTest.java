@@ -10,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -65,6 +67,21 @@ public class MenuRepositoryTest {
     void testDelete() {
         assertEquals(1, menuRepository.deleteItem(3L));
         assertEquals(1, menuRepository.deleteItem(2L));
+    }
+
+    @Test
+    @Order(3)
+    void testInsertItems() {
+        List<MenuItem> items = Stream.of("Go橙汁", "Python气泡水", "JavaScript苏打水")
+                .map(n -> MenuItem.builder().name(n).size("中杯").price(BigDecimal.valueOf(12.00)).build())
+                .collect(Collectors.toList());
+        assertEquals(3, menuRepository.insertItems(items));
+        assertItem(menuRepository.queryForItem(5L),
+                5L, "Go橙汁", "中杯", BigDecimal.valueOf(12.00));
+        assertItem(menuRepository.queryForItem(6L),
+                6L, "Python气泡水", "中杯", BigDecimal.valueOf(12.00));
+        assertItem(menuRepository.queryForItem(7L),
+                7L, "JavaScript苏打水", "中杯", BigDecimal.valueOf(12.00));
     }
 
     private void assertItem(MenuItem item, Long id, String name, String size, BigDecimal price) {
