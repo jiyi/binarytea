@@ -26,7 +26,7 @@ public class Order {
 
     @ManyToMany
     @JoinTable(name = "t_order_item",
-        joinColumns = @JoinColumn(name = "order_id"),
+        joinColumns = @JoinColumn(name = "item_id"),
         inverseJoinColumns = @JoinColumn(name = "order_id"))
     @OrderBy
     private List<MenuItem> items;

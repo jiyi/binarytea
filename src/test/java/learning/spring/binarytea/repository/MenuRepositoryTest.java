@@ -57,6 +57,46 @@ public class MenuRepositoryTest {
         }
     }
 
+    @Test
+    @Order(2)
+    void testCountMenuItems() {
+        assertEquals(3, menuRepository.countMenuItems());
+    }
+
+    @Test
+    @Order(3)
+    void testQueryForItem() {
+        MenuItem item = menuRepository.queryForItem(1L);
+        assertNotNull(item);
+        assertItem(1L, "Go橙汁");
+    }
+
+    @Test
+    @Order(4)
+    void testQueryAllItems() {
+        List<MenuItem> items = menuRepository.queryAllItems();
+        assertNotNull(items);
+        assertFalse(items.isEmpty());
+        assertEquals(3, items.size());
+    }
+
+    @Test
+    @Order(5)
+    void testUpdateItem() {
+        MenuItem item = menuRepository.queryForItem(1L);
+        item.setPrice(Money.ofMinor(CurrencyUnit.of("CNY"), 1100));
+        menuRepository.updateItem(item);
+        Long price = jdbcTemplate.queryForObject("select price from t_menu where id = 1", Long.class);
+        assertEquals(1100L, price);
+    }
+
+    @Test
+    @Order(6)
+    void testDeleteItem() {
+        menuRepository.deleteItem(2L);
+        assertNull(menuRepository.queryForItem(2L));
+    }
+
     private void assertItem(Long id, String name) {
         Map<String, Object> result = jdbcTemplate.queryForMap("select * from t_menu where id = ?", id);
         assertEquals(name, result.get("name"));
