@@ -1,22 +1,41 @@
 package learning.spring.binarytea.model;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.joda.money.Money;
 
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Builder
-@Getter
-@Setter
-@ToString
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "t_menu")
 public class MenuItem {
+    @Id
+    @GeneratedValue
     private Long id;
+
     private String name;
-    private String size;
-    private BigDecimal price; // 暂时用BigDecimal表示金额
+
+    @Enumerated(EnumType.STRING)
+    private Size size;
+
+    @Type(type = "org.jadira.usertype.moneyandcurrency.joda.PersistentMoneyMinorAmount",
+        parameters = {@org.hibernate.annotations.Parameter(name = "currencyCode", value = "CNY")})
+    private Money price;
+
+    @Column(updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private Date createTime;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @UpdateTimestamp
     private Date updateTime;
 }

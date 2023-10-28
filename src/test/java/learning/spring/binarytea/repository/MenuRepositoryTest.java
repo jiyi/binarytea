@@ -1,15 +1,18 @@
 package learning.spring.binarytea.repository;
 
 import learning.spring.binarytea.model.MenuItem;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import learning.spring.binarytea.model.Size;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,73 +25,42 @@ public class MenuRepositoryTest {
     @Autowired
     private MenuRepository menuRepository;
 
-    @Test
-    @Order(0)
-    void testCountMenuItems() {
-        assertEquals(2, menuRepository.countMenuItems());
+    @Autowired
+    private DataSource dataSource;
+
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    public void setUp() {
+        jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    @Test
-    @Order(0)
-    void testQueryAllItems() {
-        List<MenuItem> items = menuRepository.queryAllItems();
-        assertNotNull(items);
-        assertFalse(items.isEmpty());
-        assertEquals(2, items.size());
-    }
-
-    @Test
-    @Order(0)
-    void testQueryForItem() {
-        MenuItem item = menuRepository.queryForItem(1L);
-        assertItem(item, 1L, "Java咖啡", "中杯", BigDecimal.valueOf(10.00));
+    @AfterEach
+    public void tearDown() {
+        jdbcTemplate = null;
     }
 
     @Test
     @Order(1)
     void testInsertItem() {
-        MenuItem item = MenuItem.builder()
-                .name("Go橙汁")
-                .size("中杯")
-                .price(BigDecimal.valueOf(12.00))
-                .build();
-        assertEquals(1, menuRepository.insertItem(item));
-        assertNull(item.getId());
-        MenuItem queryItem = menuRepository.queryForItem(3L);
-        assertItem(queryItem, 3L, "Go橙汁", "中杯", BigDecimal.valueOf(12.00));
-
-        assertEquals(1, menuRepository.insertItemAndFillId(item));
-        queryItem = menuRepository.queryForItem(item.getId());
-        assertItem(queryItem, 4L, "Go橙汁", "中杯", BigDecimal.valueOf(12.00));
-    }
-
-    @Test
-    @Order(2)
-    void testDelete() {
-        assertEquals(1, menuRepository.deleteItem(3L));
-        assertEquals(1, menuRepository.deleteItem(2L));
-    }
-
-    @Test
-    @Order(3)
-    void testInsertItems() {
         List<MenuItem> items = Stream.of("Go橙汁", "Python气泡水", "JavaScript苏打水")
-                .map(n -> MenuItem.builder().name(n).size("中杯").price(BigDecimal.valueOf(12.00)).build())
+                .map(n -> MenuItem.builder().name(n)
+                            .size(Size.MEDIUM)
+                            .price(Money.ofMinor(CurrencyUnit.of("CNY"), 1200))
+                            .build())
+                .peek(m -> menuRepository.insertItem(m))
                 .collect(Collectors.toList());
-        assertEquals(3, menuRepository.insertItems(items));
-        assertItem(menuRepository.queryForItem(5L),
-                5L, "Go橙汁", "中杯", BigDecimal.valueOf(12.00));
-        assertItem(menuRepository.queryForItem(6L),
-                6L, "Python气泡水", "中杯", BigDecimal.valueOf(12.00));
-        assertItem(menuRepository.queryForItem(7L),
-                7L, "JavaScript苏打水", "中杯", BigDecimal.valueOf(12.00));
+
+        for (int i = 0; i < 3; i++) {
+            assertEquals(i + 1, items.get(i).getId());
+            assertItem(i + 1L, items.get(i).getName());
+        }
     }
 
-    private void assertItem(MenuItem item, Long id, String name, String size, BigDecimal price) {
-        assertNotNull(item);
-        assertEquals(id, item.getId());
-        assertEquals(name, item.getName());
-        assertEquals(size, item.getSize());
-        assertEquals(price, item.getPrice());
+    private void assertItem(Long id, String name) {
+        Map<String, Object> result = jdbcTemplate.queryForMap("select * from t_menu where id = ?", id);
+        assertEquals(name, result.get("name"));
+        assertEquals(Size.MEDIUM.name(), result.get("size"));
+        assertEquals(1200L, result.get("price"));
     }
 }
