@@ -18,8 +18,8 @@ public class MenuPrinterRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        log.info("共有{}个饮品可选。", menuRepository.countMenuItems());
-        menuRepository.queryAllItems()
+        log.info("共有{}个饮品可选。", menuRepository.count());
+        menuRepository.findAll()
                 .forEach(i -> log.info("饮品：{}", i));
     }
 }

@@ -10,9 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +48,7 @@ public class MenuRepositoryTest {
                             .size(Size.MEDIUM)
                             .price(Money.ofMinor(CurrencyUnit.of("CNY"), 1200))
                             .build())
-                .peek(m -> menuRepository.insertItem(m))
+                .peek(m -> menuRepository.save(m))
                 .collect(Collectors.toList());
 
         for (int i = 0; i < 3; i++) {
@@ -60,13 +60,13 @@ public class MenuRepositoryTest {
     @Test
     @Order(2)
     void testCountMenuItems() {
-        assertEquals(3, menuRepository.countMenuItems());
+        assertEquals(3, menuRepository.count());
     }
 
     @Test
     @Order(3)
     void testQueryForItem() {
-        MenuItem item = menuRepository.queryForItem(1L);
+        MenuItem item = menuRepository.getById(1L);
         assertNotNull(item);
         assertItem(1L, "Go橙汁");
     }
@@ -74,7 +74,7 @@ public class MenuRepositoryTest {
     @Test
     @Order(4)
     void testQueryAllItems() {
-        List<MenuItem> items = menuRepository.queryAllItems();
+        List<MenuItem> items = menuRepository.findAll();
         assertNotNull(items);
         assertFalse(items.isEmpty());
         assertEquals(3, items.size());
@@ -83,9 +83,10 @@ public class MenuRepositoryTest {
     @Test
     @Order(5)
     void testUpdateItem() {
-        MenuItem item = menuRepository.queryForItem(1L);
-        item.setPrice(Money.ofMinor(CurrencyUnit.of("CNY"), 1100));
-        menuRepository.updateItem(item);
+        Optional<MenuItem> item = menuRepository.findById(1L);
+        assertTrue(item.isPresent());
+        item.get().setPrice(Money.ofMinor(CurrencyUnit.of("CNY"), 1100));
+        menuRepository.save(item.get());
         Long price = jdbcTemplate.queryForObject("select price from t_menu where id = 1", Long.class);
         assertEquals(1100L, price);
     }
@@ -93,8 +94,8 @@ public class MenuRepositoryTest {
     @Test
     @Order(6)
     void testDeleteItem() {
-        menuRepository.deleteItem(2L);
-        assertNull(menuRepository.queryForItem(2L));
+        menuRepository.deleteById(2L);
+        assertFalse(menuRepository.findById(2L).isPresent());
     }
 
     private void assertItem(Long id, String name) {
