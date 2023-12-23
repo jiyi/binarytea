@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learning.spring.binarytea.repository.TeaMakerMapper">
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into t_tea_maker
+        (name, create_time, update_time)
+        values (#{name}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_tea_maker
+        set name = #{name}, update_time = now()
+        where id = #{id}
+    </update>
+
+    <resultMap id="teaMakerMap" type="learning.spring.binarytea.model.TeaMaker">
+        <id column="id" property="id" />
+        <collection property="orders" ofType="learning.spring.binarytea.model.Order"
+                    select="learning.spring.binarytea.repository.OrderMapper.findByMakerId"
+                    column="id" />
+    </resultMap>
+
+    <select id="findById" resultMap="teaMakerMap">
+        select * from t_tea_maker where id = #{id}"
+    </select>
+
+    <select id="findAllWithRowBounds" resultMap="teaMakerMap">
+        select * from t_tea_maker
+    </select>
+
+    <select id="findAllWithPage" resultMap="teaMakerMap">
+        select * from t_tea_maker
+    </select>
+
+</mapper>
