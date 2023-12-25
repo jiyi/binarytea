@@ -45,5 +45,12 @@ public class OrderMapperTest {
         Long orderId = order.getId();
         assertNotNull(orderId);
         assertEquals(1, orderMapper.addOrderItem(orderId, menuItemMapper.findById(2L)));
+
+        order = orderMapper.findById(orderId);
+        assertEquals(OrderStatus.ORDERED, order.getStatus());
+        assertEquals(90, order.getAmount().getDiscount());
+        assertEquals(maker.getId(), order.getMaker().getId());
+        assertEquals(1, order.getItems().size());
+        assertEquals(2L, order.getItems().get(0).getId());
     }
 }
