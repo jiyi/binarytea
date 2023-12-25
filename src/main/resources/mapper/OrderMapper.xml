@@ -5,9 +5,10 @@
     <insert id="save" useGeneratedKeys="true" keyProperty="id">
         insert into t_order
         (maker_id, status, amount_discount, amount_pay, amount_total, create_time, update_time)
-        values
-        (#{maker.id}, #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
-            #{amount.discount}, #{amount.payAmount}, #{amount.totalAmount}, now(), now())
+        values (
+        #{maker.id},
+        #{status, javaType=learning.spring.binarytea.model.OrderStatus, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler },
+        #{amount.discount}, #{amount.payAmount}, #{amount.totalAmount}, now(), now())
     </insert>
 
     <insert id="addOrderItem">
@@ -39,7 +40,7 @@
     </resultMap>
 
     <select id="findById" resultMap="orderMap">
-        select * from t_order where id = #{id}"
+        select * from t_order where id = #{id}
     </select>
 
     <select id="findByMakerId" resultMap="orderMap">

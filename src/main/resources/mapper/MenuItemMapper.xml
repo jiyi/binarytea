@@ -31,7 +31,7 @@
     </select>
 
     <delete id="deleteById" >
-        delete from t_menu where id = #{id}"
+        delete from t_menu where id = #{id}
     </delete>
 
     <select id="findAll" resultMap="menuItem">
@@ -41,7 +41,7 @@
     <select id="findByOrderId" resultMap="menuItem">
         select m.*
         from t_menu m, t_order_item i
-        where m.id = i.item_id and i.order_id = #{orderId}"
+        where m.id = i.item_id and i.order_id = #{orderId}
     </select>
 
 </mapper>

@@ -22,7 +22,7 @@
     </resultMap>
 
     <select id="findById" resultMap="teaMakerMap">
-        select * from t_tea_maker where id = #{id}"
+        select * from t_tea_maker where id = #{id}
     </select>
 
     <select id="findAllWithRowBounds" resultMap="teaMakerMap">
