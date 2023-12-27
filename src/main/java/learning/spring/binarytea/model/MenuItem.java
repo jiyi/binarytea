@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.joda.money.Money;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -16,7 +17,9 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 @Table(name = "t_menu")
-public class MenuItem {
+public class MenuItem implements Serializable {
+    private static final long serialVersionUID = 8585684450527309518L;
+
     @Id
     @GeneratedValue
     private Long id;
