@@ -6,6 +6,8 @@ import learning.spring.binarytea.repository.MenuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,5 +29,13 @@ public class MenuService {
     @Cacheable(key = "#root.methodName + '-' + #name + '-' + #size")
     public Optional<MenuItem> getByNameAndSize(String name, Size size) {
         return menuRepository.findByNameAndSize(name, size);
+    }
+
+    public Optional<MenuItem> getById(Long id) {
+        return menuRepository.findById(id);
+    }
+
+    public List<MenuItem> getByName(String name) {
+        return menuRepository.findAll(Example.of(MenuItem.builder().name(name).build()), Sort.by("id"));
     }
 }
