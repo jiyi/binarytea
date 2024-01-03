@@ -46,4 +46,8 @@ public class MenuService {
     public List<MenuItem> save(List<MenuItem> items) {
         return menuRepository.saveAll(items);
     }
+
+    public List<MenuItem> getByIdList(List<Long> idList) {
+        return menuRepository.findAllById(idList);
+    }
 }
