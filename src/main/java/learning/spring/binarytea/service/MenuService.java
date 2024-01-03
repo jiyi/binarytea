@@ -38,4 +38,8 @@ public class MenuService {
     public List<MenuItem> getByName(String name) {
         return menuRepository.findAll(Example.of(MenuItem.builder().name(name).build()), Sort.by("id"));
     }
+
+    public Optional<MenuItem> save(MenuItem item) {
+        return Optional.ofNullable(menuRepository.save(item));
+    }
 }

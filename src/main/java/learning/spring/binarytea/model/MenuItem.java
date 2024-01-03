@@ -21,7 +21,7 @@ public class MenuItem implements Serializable {
     private static final long serialVersionUID = 8585684450527309518L;
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
