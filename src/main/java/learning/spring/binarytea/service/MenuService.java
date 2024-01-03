@@ -42,4 +42,8 @@ public class MenuService {
     public Optional<MenuItem> save(MenuItem item) {
         return Optional.ofNullable(menuRepository.save(item));
     }
+
+    public List<MenuItem> save(List<MenuItem> items) {
+        return menuRepository.saveAll(items);
+    }
 }
